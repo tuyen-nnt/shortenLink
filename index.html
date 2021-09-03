@@ -5,12 +5,46 @@
     <title>Shorten Your Link</title>
 </head>
 <body>
-# Call API
-    <form action="/shorten" method="post">
-        <label for="searchbox"> Input your link here: </label><br>
+<!-- Call API -->
+<form action="/shorten" method="post" onsubmit="event.preventDefault();">
+    <label for="searchbox"> Input your link here: </label><br>
+    <input id="searchbox" name="url" type="text"/>
+    <input onclick="getShortenLink()" type="submit" value="Search"/>
+    <!-- TODO: Find alternative method to prevent form submission -->
+</form>
 
-            <input id="searchbox" name="url" type="text"/>
-        <input type="submit" value="Search"/>
-    </form>
+<div>
+    <h3> Your short link here: </h3>
+    <p><a href="" id="short_url" target="_blank"></a></p>
+</div>
+<script>
+    function getShortenLink() {
+        const url = document.getElementById('searchbox').value;
+        console.log("URL is " + url);
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
+        <!-- Why when 3rd param is false, the function not work -->
+        xhr.open("POST", "/shorten", true);
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send
+        xhr.send("url=" + url);
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequestEventTarget/onload
+        xhr.onload = function () {
+            // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/responseText
+            console.log("Server response: " + this.responseText);
+
+            document.getElementById("short_url").innerText = this.responseText;
+            document.getElementById("short_url").setAttribute("href", this.responseText);
+        }
+    }
+</script>
+
 </body>
 </html>
