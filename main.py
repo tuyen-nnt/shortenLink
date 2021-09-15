@@ -6,6 +6,7 @@ import tornado.web
 import hashlib
 import random
 import string
+import sqlite3
 import subprocess
 
 URL_LENGTH = 5
@@ -27,12 +28,13 @@ def get_random_url(num):
 class UrlShortenHandler(tornado.web.RequestHandler):
 
     # VD như postman chọn method POST thì nó sẽ chạy hàm này
+    # When you submit the info, the page would use method POST
     def post(self):
 
         host = self.request.headers.get('Host')
         print('Host: ' + host)
 
-        #Nhập input, url is a parameter. Hàm dưới đây giúp truy xuất tham số trong body của Post.
+        # Nhập input, url is a parameter. Hàm dưới đây giúp truy xuất attribute name="url" trong body khi gọi phương thức Post ở index.html file.
         url = self.get_body_argument("url", default=None, strip=False)
         # url = self.get_query_argument("url", default=None, strip=False)
         # https://stackoverflow.com/questions/34818996/tornado-what-is-the-difference-between-requesthandlers-get-argument-get-qu
@@ -45,47 +47,82 @@ class UrlShortenHandler(tornado.web.RequestHandler):
 
         hash = hashlib.md5(url.encode()).hexdigest()
 
-        # Check xem cái key có trong dict (db) không, nếu có thì in ra shorten link đã tạo luôn
-        if hash in URL_REVERSE:
-            # write result
-            self.write('http://' + host + '/shorten?id=' + URL_REVERSE[hash])
+        # connect to the database
+        db = sqlite3.connect('url.db')
+        cursor = db.cursor()
+
+        # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
+        cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = ?", (hash,))
+        # fetch the first result of the query above (tuple type)
+        result = cursor.fetchone()
+        print(result)
+
+        if result and len(result) > 0:
+            # write result, this is the this.responseText you can see in index.html file
+            self.write('http://' + host + '/shorten?id=' + result[0])
             return
 
-        # Nếu chưa có thì tạo random shorten link
+
+        # Nếu chưa có trong db thì tạo random shorten link
         shorten = get_random_url(URL_LENGTH)
-        # KHi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
-        while shorten in URL:
+        # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
+        cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+        # fetch the first result of the query above
+        result = cursor.fetchone()
+
+        # if the result is already created, we will continue generating
+        while result and len(result) > 0:
             shorten = get_random_url(URL_LENGTH)
+            cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+            # fetch the first result of the query above
+            result = cursor.fetchone()
 
         print("Receive url: " + url)
         print("Shorten url: " + shorten)
         print("Hash url: " + hash)
 
-        URL[shorten] = url
-        # Hash key of the dict is a hex(url)
-        URL_REVERSE[hash] = shorten
+        params = (url, hash, shorten)
+        cursor.execute("INSERT INTO myurl (id, real_url, hash_url, shorten_url) VALUES (NULL , ?, ?, ?)", params)
         self.write('http://' + host + '/shorten?id=' + shorten)
-    # As long as you use the port as setup here, the method will run this script
+
+        db.commit()
+        db.close()
+
+    # When the page retrieve the result, the method will use method GET
     def get(self):
+        # connect to the database
+        db = sqlite3.connect('url.db')
+        cursor = db.cursor()
+        # Lấy id query trong url. This is just shorten character.
         id = self.get_argument('id', default=None)
-        if id in URL:
-            #self.write(URL[id])
-            self.redirect(URL[id])
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        # fetch the first result of the query above
+        result = cursor.fetchone()
+
+        print(result[0])
+        print(result and len(result) > 0)
+
+        if result and len(result) > 0:
+            self.redirect(result[0])
         else:
             self.clear()
             self.set_status(404)
             self.finish('')
-
+        db.close()
 
     def head(self):
+        # connect to the database
+        db = sqlite3.connect('url.db')
+        cursor = db.cursor()
+        # Lấy id query trong url. This is just shorten character.
         id = self.get_argument('id', default=None)
-        if id in URL:
-            #self.write(URL[id])
-            self.redirect(URL[id])
-        else:
-            self.clear()
-            self.set_status(404)
-            self.finish('')
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        # fetch the first result of the query above
+        result = cursor.fetchone()
+
+        if result and len(result) > 0:
+            self.redirect(result[0])
+        db.close()
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
@@ -112,3 +149,5 @@ if __name__ == "__main__":
 
 # https://www.youtube.com/watch?v=DQNW9qhl4eA
 # https://www.youtube.com/watch?v=-gJ21qzpieA
+
+# SQLite3 Database : https://www.udacity.com/blog/2021/07/how-to-write-your-first-python-application.html

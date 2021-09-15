@@ -53,6 +53,11 @@
             return;
         }
 
+        if (url.indexOf(' ') >= 0 || !url.includes('.')) {
+            alert("URL is not valid!")
+            return;
+        }
+
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/XMLHttpRequest
         var xhr = new XMLHttpRequest();
 
@@ -78,8 +83,9 @@
                 <!--console.log("Server response: " + this.responseText);-->
                 <!--console.log(xhr.status, xhr.statusText);-->
                 <!-- alert("HTTP error code " + xhr.status + ": " + xhr.statusText);-->
-                setError(xhr)
+                setError(xhr);
             }
+            //Error 404: https://www.udacity.com/blog/2021/03/creating-an-html-404-error-web-page.html
         }
     }
 </script>
