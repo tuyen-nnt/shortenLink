@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shorten Your Link</title>
+</head>
+<body>
+<!-- Call API -->
+
+<form method="post" onsubmit="event.preventDefault();">
+    <label for="searchbox"> Input your link here: </label><br>
+    <input id="searchbox" name="url" type="text" required/>
+    <input onclick="getShortenLink()" type="submit" value="Search"/>
+    <!-- TODO: Find alternative method to prevent form submission -->
+</form>
+<br>
+<div id="success" style="display: inline-block">
+    <h3 id="header"> Your short link here: </h3>
+    <p><a href="" id="short_url" target="_blank"></a></p>
+</div>
+<div id="error" style="display: none">
+    <h3>Error</h3>
+    <p id="error_text"></p>
+</div>
+
+
+<script>
+
+    function setSuccess(url) {
+        document.getElementById("short_url").innerText = url;
+        document.getElementById("short_url").setAttribute("href", url);
+    }
+
+    function setError(xhr) {
+        document.getElementById("success").setAttribute("style", "display: none");
+        document.getElementById("error").setAttribute("style", "display: inline-block");
+        document.getElementById("error_text").innerText = "HTTP error code " + xhr.status + ": " + xhr.statusText;
+    }
+
+    <!-- Return to the original html format -->
+    function resetHTML() {
+        document.getElementById("success").setAttribute("style", "display: inline-block");
+        document.getElementById("error").setAttribute("style", "display: none");
+    }
+
+
+    function getShortenLink() {
+        url = document.getElementById('searchbox').value;
+        console.log("URL is " + url);
+
+        if (!url) {
+            alert("Cannot shorten an empty link! Please input a valid link!")
+            return;
+        }
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
+        <!-- Why when 3rd param is false, the function not work -->
+        <!--xhr.open("POST", parseInt(Math.random() * 100) % 2 === 0 ? "/shortenh" : "/shorten", true);-->
+        xhr.open("POST", "/shorten", true);
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send
+        xhr.send("url=" + url);
+
+        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequestEventTarget/onload
+        xhr.onload = function () {
+            resetHTML();
+            // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/responseText
+            if (xhr.status === 200) {
+                console.log("Server response: " + this.responseText);
+                setSuccess(this.responseText);
+            } else if (xhr.status !== 200) {
+                <!--console.log("Server response: " + this.responseText);-->
+                <!--console.log(xhr.status, xhr.statusText);-->
+                <!-- alert("HTTP error code " + xhr.status + ": " + xhr.statusText);-->
+                setError(xhr)
+            }
+            //Error 404: https://www.udacity.com/blog/2021/03/creating-an-html-404-error-web-page.html
+        }
+    }
+</script>
+
+</body>
+</html>
