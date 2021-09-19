@@ -51,14 +51,6 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         db = sqlite3.connect('url.db')
         cursor = db.cursor()
 
-        # create table if not exists
-        cursor.execute("""CREATE TABLE IF NOT EXITS myurl(
-                ... id INTEGER PRIMARY KEY,
-                ... real_url VARCHAR,
-                ... hash_url VARCHAR,
-                ... shorten_url VARCHAR
-                ... )""")
-
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
         cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = ?", (hash,))
         # fetch the first result of the query above (tuple type)
@@ -141,6 +133,18 @@ class IndexHandler(tornado.web.RequestHandler):
 
 
 def make_app():
+    # connect to the database
+    db = sqlite3.connect('url.db')
+    cursor = db.cursor()
+
+    # create table if not exists
+    cursor.execute("""CREATE TABLE IF NOT EXITS myurl(
+                    ... id INTEGER PRIMARY KEY,
+                    ... real_url VARCHAR,
+                    ... hash_url VARCHAR,
+                    ... shorten_url VARCHAR
+                    ... )""")
+
     return tornado.web.Application([
         (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
         (r"/shorten", UrlShortenHandler),
