@@ -138,7 +138,7 @@ def make_app():
     cursor = db.cursor()
 
     # create table if not exists
-    cursor.execute("""CREATE TABLE IF NOT EXITS myurl(
+    cursor.execute("""CREATE TABLE IF NOT EXISTS myurl(
                     ... id INTEGER PRIMARY KEY,
                     ... real_url VARCHAR,
                     ... hash_url VARCHAR,
