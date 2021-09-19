@@ -138,12 +138,11 @@ def make_app():
     cursor = db.cursor()
 
     # create table if not exists
-    cursor.execute("""CREATE TABLE IF NOT EXISTS myurl(
-                    ... id INTEGER PRIMARY KEY,
-                    ... real_url VARCHAR,
-                    ... hash_url VARCHAR,
-                    ... shorten_url VARCHAR
-                    ... )""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS myurl(id INTEGER PRIMARY KEY,\
+                    real_url VARCHAR, \
+                    hash_url VARCHAR, \
+                    shorten_url VARCHAR \
+                    )""")
 
     return tornado.web.Application([
         (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
