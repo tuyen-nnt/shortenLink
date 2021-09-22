@@ -12,13 +12,9 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt       
 
 RUN apt-get -y update
-RUN apt-get -y upgrade
 RUN apt-get install -y sqlite3 libsqlite3-dev
-RUN mkdir /db
-RUN /usr/bin/sqlite3 /db/url.db
-# CMD /bin/bash
 
-COPY . .                  
+COPY index.html main.py ./            
 
 # CMD [ "python3 -m http.server 8888"]
 ENTRYPOINT ["python3", "/app/main.py"]
