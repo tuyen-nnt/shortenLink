@@ -7,7 +7,7 @@ import hashlib
 import random
 import string
 import sqlite3
-import MySQLdb
+import mysql.connector as mydb
 
 URL_LENGTH = 5
 
@@ -48,12 +48,12 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         hash = hashlib.md5(url.encode()).hexdigest()
 
         # Open database connection
-        db = MySQLdb.connect("localhost", "root", "xxx", "url")
+        db = mydb.connect(host="localhost", user="root", password="Dauphongthui@9116", database="url")
         # prepare a cursor object using cursor() method
         cursor = db.cursor()
 
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
-        cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = ?", (hash,))
+        cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = %s", (hash,))
         # fetch the first result of the query above (tuple type)
         result = cursor.fetchone()
         print(result)
@@ -67,14 +67,14 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         # Nếu chưa có trong db thì tạo random shorten link
         shorten = get_random_url(URL_LENGTH)
         # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
-        cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+        cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         # if the result is already created, we will continue generating
         while result and len(result) > 0:
             shorten = get_random_url(URL_LENGTH)
-            cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+            cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
             # fetch the first result of the query above
             result = cursor.fetchone()
 
@@ -83,7 +83,7 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         print("Hash url: " + hash)
 
         params = (url, hash, shorten)
-        cursor.execute("INSERT INTO myurl (id, real_url, hash_url, shorten_url) VALUES (NULL , ?, ?, ?)", params)
+        cursor.execute("INSERT INTO myurl (real_url, hash_url, shorten_url) VALUES (%s, %s, %s)", params)
         self.write('http://' + host + '/shorten?id=' + shorten)
 
         db.commit()
@@ -92,19 +92,17 @@ class UrlShortenHandler(tornado.web.RequestHandler):
     # When the page retrieve the result, the method will use method GET
     def get(self):
         # Open database connection
-        db = MySQLdb.connect("localhost", "root", "xxx", "url")
+        db = mydb.connect(host="localhost", user="root", password="Dauphongthui@9116", database="url")
         # prepare a cursor object using cursor() method
         cursor = db.cursor()
         # Lấy id query trong url. This is just shorten character.
         id = self.get_argument('id', default=None)
-        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = %s",(id,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         # print(type(result))
         # print(result[0])
-
-        print(result and len(result) > 0)
 
         if result and len(result) > 0:
             self.redirect(result[0])
@@ -116,12 +114,12 @@ class UrlShortenHandler(tornado.web.RequestHandler):
 
     def head(self):
         # Open database connection
-        db = MySQLdb.connect("localhost", "root", "xxx", "url")
+        db = mydb.connect(host="localhost", user="root", password="Dauphongthui@9116", database="url")
         # prepare a cursor object using cursor() method
         cursor = db.cursor()
         # Lấy id query trong url. This is just shorten character.
         id = self.get_argument('id', default=None)
-        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = %s", (id,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
@@ -137,16 +135,16 @@ class IndexHandler(tornado.web.RequestHandler):
 
 def make_app():
     # Open database connection
-    db = MySQLdb.connect("localhost", "root", "xxx", "url")
+    db = mydb.connect(host="localhost", user="root", password="Dauphongthui@9116", database="url")
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
 
     # create table if not exists
-    cursor.execute("""CREATE TABLE IF NOT EXISTS myurl (id INTEGER PRIMARY KEY,\
+    cursor.execute("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
                         real_url VARCHAR(100), \
                         hash_url VARCHAR(100), \
                         shorten_url VARCHAR(100) \
-                        )""")
+                        )")
 
     return tornado.web.Application([
         (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
@@ -160,11 +158,11 @@ if __name__ == "__main__":
     app.listen(8888)
     tornado.ioloop.IOLoop.current().start()
 
-
+# https://thaythuocdonghanh.vn/sf8s7fsufasjf/create_link
+# http://127.0.0.1/create_link
 # import webbrowser
 # REDIRECT: webbrowser.open('http://example.com')
 
 # https://www.youtube.com/watch?v=DQNW9qhl4eA
 # https://www.youtube.com/watch?v=-gJ21qzpieA
 
-# SQLite3 Database : https://www.udacity.com/blog/2021/07/how-to-write-your-first-python-application.html
