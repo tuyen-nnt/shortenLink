@@ -5,6 +5,8 @@ FROM python:3-alpine
 
 WORKDIR /app
 EXPOSE 8888
+# map port 8888 tu trong cointainer ra ngoai may may
+
 
 RUN python -m pip install --upgrade pip && pip3 install tornado
 
