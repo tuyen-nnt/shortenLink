@@ -58,6 +58,11 @@
             return;
         }
 
+        if (!url.includes('http://') && !url.includes('https://')) {
+            alert("Try again! A valid link should begin with http:// or https://")
+            return
+        }
+
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/XMLHttpRequest
         var xhr = new XMLHttpRequest();
 
