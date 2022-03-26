@@ -8,6 +8,7 @@ import random
 import os
 import string
 import mysql.connector as mydb
+import backend_db
 
 URL_LENGTH = 5
 
@@ -26,6 +27,9 @@ def get_random_url(num):
 
 
 class UrlShortenHandler(tornado.web.RequestHandler):
+
+    def initialize(self, database):
+        self.database = database
 
     # VD như postman chọn method POST thì nó sẽ chạy hàm này
     # When you submit the info, the page would use method POST
@@ -146,36 +150,60 @@ class IndexHandler(tornado.web.RequestHandler):
         # subprocess.call("echo Hello World", shell=True)
 
 
-
 def make_app():
 
-    DB_HOST = os.environ['DB_HOST']
-    DB_USER = os.environ['DB_USER']
-    DB_PASSWORD = os.environ['DB_PASSWORD']
-    DB_NAME = os.environ['DB_NAME']
-
-    connection = mydb.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
-    print("Connected !!!")
-    cursor = connection.cursor()
-
-    # create table if not exists
-    cursor.execute("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
-                        real_url VARCHAR(100), \
-                        hash_url VARCHAR(100), \
-                        shorten_url VARCHAR(100) \
-                        )")
-
-    return tornado.web.Application([
-        (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
-        (r"/", UrlShortenHandler),
-        (r"/index", IndexHandler),
-    ]
+    db = backend_db.MyDatabase(
+        host=os.getenv('DB_HOST', '127.0.0.1'),
+        # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
+        port=int(os.getenv('DB_PORT', 3306)),
+        username=os.getenv('DB_USER', 'root'),
+        password=os.getenv('DB_PASSWORD', 'tuyen'),
+        db_name=os.getenv('DB_NAME', 'shortenlink')
     )
 
+    # https://www.tornadoweb.org/en/stable/web.html
+    return tornado.web.Application([
+        (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
+        (r"/", UrlShortenHandler, dict(database=db)),
+        (r"/index", IndexHandler),
+    ])
 
+
+# https://www.tornadoweb.org/en/stable/index.html
+
+'''
+# To create link
+$ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "url=https://abc.com" http://localhost:8080
+http://localhost:8080/?=ROCZc
+'''
+
+'''
+# To verify
+$ curl -v "http://localhost:8080/?=ROCZc"
+*   Trying ::1:8080...
+* Connected to localhost (::1) port 8080 (#0)
+> GET /?=ROCZc HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.77.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 302 Found
+< Server: TornadoServer/6.1
+< Content-Type: text/html; charset=UTF-8
+< Date: Sat, 26 Mar 2022 11:34:42 GMT
+< Location: https://abc.com                 <<<<<< ---------------------
+< Content-Length: 0
+<
+* Connection #0 to host localhost left intact
+'''
 if __name__ == "__main__":
     app = make_app()
-    app.listen(port=8888)
+
+    port = int(os.getenv('WEB_LISTEN_PORT', '8080'))
+    app.listen(port=port)
+    print('Server is listening at port ' + str(port))
+
     tornado.ioloop.IOLoop.current().start()
 
 # https://thaythuocdonghanh.vn/sf8s7fsufasjf/create_link
