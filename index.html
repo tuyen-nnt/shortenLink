@@ -69,7 +69,7 @@
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
         <!-- Why when 3rd param is false, the function not work -->
         <!--xhr.open("POST", parseInt(Math.random() * 100) % 2 === 0 ? "/shortenh" : "/shorten", true);-->
-        xhr.open("POST", "/shorten", true);
+        xhr.open("POST", "/", true);
 
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

@@ -5,9 +5,9 @@ import tornado.ioloop
 import tornado.web
 import hashlib
 import random
+import os
 import string
-import sqlite3
-import subprocess
+import mysql.connector as mydb
 
 URL_LENGTH = 5
 
@@ -47,33 +47,36 @@ class UrlShortenHandler(tornado.web.RequestHandler):
 
         hash = hashlib.md5(url.encode()).hexdigest()
 
-        # connect to the database
-        db = sqlite3.connect('url.db')
-        cursor = db.cursor()
+        DB_HOST = os.environ['DB_HOST']
+        DB_USER = os.environ['DB_USER']
+        DB_PASSWORD = os.environ['DB_PASSWORD']
+        DB_NAME = os.environ['DB_NAME']
+
+        connection = mydb.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
+        print("Connected")
+        cursor = connection.cursor()
 
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
-        cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = ?", (hash,))
+        cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = %s", (hash,))
         # fetch the first result of the query above (tuple type)
         result = cursor.fetchone()
-        print(result)
 
         if result and len(result) > 0:
             # write result, this is the this.responseText you can see in index.html file
-            self.write('http://' + host + '/shorten?id=' + result[0])
+            self.write('http://' + host + '/?=' + result[0])
             return
-
 
         # Nếu chưa có trong db thì tạo random shorten link
         shorten = get_random_url(URL_LENGTH)
         # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
-        cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+        cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         # if the result is already created, we will continue generating
         while result and len(result) > 0:
             shorten = get_random_url(URL_LENGTH)
-            cursor.execute("SELECT id FROM myurl WHERE shorten_url = ?", (shorten,))
+            cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
             # fetch the first result of the query above
             result = cursor.fetchone()
 
@@ -82,27 +85,31 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         print("Hash url: " + hash)
 
         params = (url, hash, shorten)
-        cursor.execute("INSERT INTO myurl (id, real_url, hash_url, shorten_url) VALUES (NULL , ?, ?, ?)", params)
-        self.write('http://' + host + '/shorten?id=' + shorten)
+        cursor.execute("INSERT INTO myurl (real_url, hash_url, shorten_url) VALUES (%s, %s, %s)", params)
+        self.write('http://' + host + '/?=' + shorten)
 
-        db.commit()
-        db.close()
+        connection.commit()
+        connection.close()
 
     # When the page retrieve the result, the method will use method GET
     def get(self):
-        # connect to the database
-        db = sqlite3.connect('url.db')
-        cursor = db.cursor()
+
+        DB_HOST = os.environ['DB_HOST']
+        DB_USER = os.environ['DB_USER']
+        DB_PASSWORD = os.environ['DB_PASSWORD']
+        DB_NAME = os.environ['DB_NAME']
+
+        connection = mydb.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
+        cursor = connection.cursor()
+
         # Lấy id query trong url. This is just shorten character.
-        id = self.get_argument('id', default=None)
-        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        id = self.get_argument('', default=None)
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = %s", (id,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         # print(type(result))
         # print(result[0])
-
-        print(result and len(result) > 0)
 
         if result and len(result) > 0:
             self.redirect(result[0])
@@ -110,21 +117,28 @@ class UrlShortenHandler(tornado.web.RequestHandler):
             self.clear()
             self.set_status(404)
             self.finish('')
-        db.close()
+        connection.close()
 
     def head(self):
-        # connect to the database
-        db = sqlite3.connect('url.db')
-        cursor = db.cursor()
+
+        DB_HOST = os.environ['DB_HOST']
+        DB_USER = os.environ['DB_USER']
+        DB_PASSWORD = os.environ['DB_PASSWORD']
+        DB_NAME = os.environ['DB_NAME']
+
+        connection = mydb.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
+        cursor = connection.cursor()
+
         # Lấy id query trong url. This is just shorten character.
-        id = self.get_argument('id', default=None)
-        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = ?", (id,))
+        id = self.get_argument('', default=None)
+        cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = %s", (id,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         if result and len(result) > 0:
             self.redirect(result[0])
-        db.close()
+        connection.close()
+
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
@@ -132,35 +146,42 @@ class IndexHandler(tornado.web.RequestHandler):
         # subprocess.call("echo Hello World", shell=True)
 
 
+
 def make_app():
-    # connect to the database
-    db = sqlite3.connect('url.db')
-    cursor = db.cursor()
+
+    DB_HOST = os.environ['DB_HOST']
+    DB_USER = os.environ['DB_USER']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+    DB_NAME = os.environ['DB_NAME']
+
+    connection = mydb.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
+    print("Connected !!!")
+    cursor = connection.cursor()
 
     # create table if not exists
-    cursor.execute("""CREATE TABLE IF NOT EXISTS myurl(id INTEGER PRIMARY KEY,\
-                    real_url VARCHAR, \
-                    hash_url VARCHAR, \
-                    shorten_url VARCHAR \
-                    )""")
+    cursor.execute("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
+                        real_url VARCHAR(100), \
+                        hash_url VARCHAR(100), \
+                        shorten_url VARCHAR(100) \
+                        )")
 
     return tornado.web.Application([
         (r"/(index\.html)", tornado.web.StaticFileHandler, {'path': '.'}),
-        (r"/shorten", UrlShortenHandler),
-        (r"/", IndexHandler),
+        (r"/", UrlShortenHandler),
+        (r"/index", IndexHandler),
     ]
     )
 
+
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8888)
+    app.listen(port=8888)
     tornado.ioloop.IOLoop.current().start()
 
-
+# https://thaythuocdonghanh.vn/sf8s7fsufasjf/create_link
+# http://127.0.0.1/create_link
 # import webbrowser
 # REDIRECT: webbrowser.open('http://example.com')
 
 # https://www.youtube.com/watch?v=DQNW9qhl4eA
 # https://www.youtube.com/watch?v=-gJ21qzpieA
-
-# SQLite3 Database : https://www.udacity.com/blog/2021/07/how-to-write-your-first-python-application.html

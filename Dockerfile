@@ -1,20 +1,19 @@
-# syntax=docker/dockerfile:1
-# Build image:  docker build -t shorten-link .
-# Run:          docker run -d -p 80:8888 shorten-link
-# Use IP:80/index.html to see the web app
+# Build image:  docker build -t shortenlink:4.0 .
+# Run:          docker run -d -p 88:8888 -e DB_HOST=172.17.0.1 -e DB_USER=root -e DB_PASSWORD=Dauphongthui@9116 -e DB_NAME=url --name tuyenngu shortenlink:4.0
+# Run on VM: docker run senrie/test-repo
 
-FROM python:3
+FROM python:3-alpine
 
 WORKDIR /app
+# EXPOSE map port 8888 tu trong cointainer ra ngoai may may
 
-COPY requirements.txt .              
+ENV DB_HOST 172.31.50.2
+ENV DB_USER root
+ENV DB_PASSWORD tuyen
+ENV DB_NAME shortlink
 
-RUN pip3 install -r requirements.txt       
+# RUN pip3 install -r requirements.txt
 
-RUN apt-get -y update
-RUN apt-get install -y sqlite3 libsqlite3-dev
+COPY . /app
 
-COPY index.html main.py ./            
-
-# CMD [ "python3 -m http.server 8888"]
 ENTRYPOINT ["python3", "/app/main.py"]
