@@ -34,6 +34,11 @@ class MyDatabase:
         self.cursor = self.connection.cursor()
 
         # create table if not exists
+        self.cursor.execute("CREATE DATABASE IF NOT EXISTS shortlink")
+
+        self.cursor.execute("USE shortlink")
+
+        # create table if not exists
         self.cursor.execute("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
                             real_url VARCHAR(100), \
                             hash_url VARCHAR(100), \
