@@ -7,12 +7,9 @@ FROM python:3
 WORKDIR /app
 # EXPOSE map port 8888 tu trong cointainer ra ngoai may may
 
-RUN pip3 install -r requirements.txt
-
-
 COPY . /app
 
-
+RUN pip3 install -r requirements.txt
 
 # It functions as a type of documentation between the person who builds the image and the person who runs the container
 # https://docs.docker.com/engine/reference/builder/#expose
