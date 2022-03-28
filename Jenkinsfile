@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Build image') {
       steps {
-        sh 'docker build -t short_link:2.0 .'
+        sh 'docker build -t short_link:2.1 .'
       }
     }
 
@@ -16,7 +16,7 @@ pipeline {
 
     stage('Run new container') {
       steps {
-        sh 'docker run -p 50001:8080 -d --name short_link short_link:2.0'
+        sh 'docker run -p 50002:8080 -d --name short_link short_link:2.1'
       }
     }
 
