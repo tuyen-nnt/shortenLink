@@ -63,7 +63,7 @@ $ curl -v "http://localhost:8080/?=ROCZc"
 if __name__ == "__main__":
     app = make_app()
 
-    port = int(os.getenv('WEB_LISTEN_PORT', '8888'))
+    port = int(os.getenv('WEB_LISTEN_PORT', '8080'))
     app.listen(port=port)
     print('Server is listening at port ' + str(port))
 
