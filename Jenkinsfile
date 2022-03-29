@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Build image') {
       steps {
-        sh 'docker build -t short_link_dev:2.0 .'
+        sh 'docker build -t short_link_dev:2.1 .'
       }
     }
 
