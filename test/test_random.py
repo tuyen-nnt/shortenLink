@@ -1,6 +1,7 @@
 import random
 import string
 import unittest
+import constant
 
 
 def get_random_url(num):
@@ -13,9 +14,9 @@ def get_random_url(num):
 
 class TestGenerateRandomPath(unittest.TestCase):
     def test_length_path(self):
-        actual = len(get_random_url(num=5))
-        self.assertEqual(5, actual)
+        actual = len(get_random_url(num=constant.URL_LENGTH))
+        self.assertEqual(constant.URL_LENGTH, actual)
 
     def test_type_path(self):
-        actual = get_random_url(num=5)
+        actual = get_random_url(num=constant.URL_LENGTH)
         self.assertEqual(type("str"), type(actual))
