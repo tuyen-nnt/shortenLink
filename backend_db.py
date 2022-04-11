@@ -7,7 +7,8 @@ import hashlib
 import random_url
 import os
 import string
-
+import constant
+from url_handler import UrlShortenHandler
 
 
 class MyDatabase:
@@ -39,24 +40,39 @@ class MyDatabase:
                             shorten_url VARCHAR(100) \
         )")
 
+
     # TODO: Write all methods that allow create shorten urls and get real urls from shorten url
 
     def check_url(self, hash):
         cursor = self.cursor
-
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
         cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = %s", (hash,))
         # fetch the first result of the query above (tuple type)
-        return cursor.fetchone()
-
-    def check_random_db(self,shorten):
-        cursor = self.cursor
-
-        # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
-        cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
-        # fetch the first result of the query above
         result = cursor.fetchone()
-        return result
+        if result and len(result) > 0:
+            # write result, this is the this.responseText you can see in index.html file
+            return result
+        else:
+            print("Not in Database yet")
+
+
+    def check_gen_random(self):
+        shorten = random_url.get_random_url(constant.URL_LENGTH)
+        print("test: " + shorten)
+        # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
+        self.cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
+        # fetch the first result of the query above
+        result_random = self.cursor.fetchone()
+        print(result_random)
+        while result_random and len(result_random) > 0:
+            shorten = random_url.get_random_url(constant.URL_LENGTH)
+            print("test: " + shorten)
+            # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
+            self.cursor.execute("SELECT id FROM myurl WHERE shorten_url = %s", (shorten,))
+            # fetch the first result of the query above
+            result_random = self.cursor.fetchone()
+
+        return shorten
 
     def add_url(self, url, hash, shorten):
         cursor = self.cursor

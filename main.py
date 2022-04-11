@@ -11,7 +11,7 @@ import backend_db
 import url_handler
 import index_handler
 
-
+URL_LENGTH = 5
 
 def make_app():
 

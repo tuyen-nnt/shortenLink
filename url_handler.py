@@ -3,8 +3,9 @@ import tornado.web
 import hashlib
 import backend_db
 from random_url import get_random_url
+import constant
 
-URL_LENGTH = 5
+
 # Dict này lưu cặp shorten: real_url
 URL = {}
 # Dict này ngược lại lưu hash_url:shorten
@@ -34,27 +35,24 @@ class UrlShortenHandler(tornado.web.RequestHandler):
         hash = hashlib.md5(url.encode()).hexdigest()
 
         result = self.database.check_url(hash)
-        if result and len(result) > 0:
-            # write result, this is the this.responseText you can see in index.html file
+        if result:
             print("Receive url: " + url)
             print("Shorten url: " + result[0])
             print("Hash url: " + hash)
-            return self.write('http://' + host + '/?=' + result[0])
+            return self.write('http://' + host + '/?id=' + result[0])
 
-        shorten = get_random_url(URL_LENGTH)
-        result_random = self.database.check_random_db(shorten)
-
-        while result_random and len(result_random) > 0:
-            shorten = get_random_url(URL_LENGTH)
-            result_random = self.database.check_random_db(shorten)
+        result_random = self.database.check_gen_random()
+        print(result_random)
 
         self.database.add_url(url, hash, result_random)
-        self.write('http://' + host + '/?=' + shorten)
+
+        self.write('http://' + host + '/?id=' + result_random)
 
 
     # When the page retrieve the result, the method will use method GET
     def get(self):
-        id = self.get_argument('', default=None)
+        id = self.get_argument('id', default=None)
+        print(id)
         result = self.database.get_url(id)
 
         if result and len(result) > 0:
@@ -65,7 +63,7 @@ class UrlShortenHandler(tornado.web.RequestHandler):
             self.finish('')
 
     def head(self):
-        id = self.get_argument('', default=None)
+        id = self.get_argument('id', default=None)
         result = self.database.get_url(id)
 
         if result and len(result) > 0:
