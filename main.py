@@ -1,20 +1,13 @@
 #!/usr/bin/python3
 # Làm sao để tạo form input vào link và nó trả về kết quả. Sau đó bấm link kết quả và sẽ redirect qua trang đã input
 
+import hashlib
+import os
+
 import tornado.ioloop
 import tornado.web
-import hashlib
-import random
-import os
-import string
-import mysql.connector
+
 import backend_db
-
-
-
-
-
-
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -23,14 +16,14 @@ class IndexHandler(tornado.web.RequestHandler):
         # subprocess.call("echo Hello World", shell=True)
 
 def make_app():
-
+    # https://www.devart.com/dbforge/mysql/how-to-install-mysql-on-ubuntu/
     db = backend_db.MyDatabase(
-        host=os.getenv('DB_HOST', '127.0.0.1'),
+        host=os.getenv('DB_HOST', 'localhost'),
         # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
         port=int(os.getenv('DB_PORT', 3306)),
-        username=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', 'tuyen'),
-        db_name=os.getenv('DB_NAME', 'shortenlink')
+        username=os.getenv('DB_USER', 'tuyen'),
+        password=os.getenv('DB_PASSWORD', 'Password@123'),
+        db_name=os.getenv('DB_NAME', 'shortlink')
     )
 
     class UrlShortenHandler(tornado.web.RequestHandler):

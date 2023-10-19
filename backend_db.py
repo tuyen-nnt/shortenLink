@@ -38,7 +38,7 @@ class MyDatabase:
         print("Connected to MySQL database at %s:%s" % (host, port))
 
         self.cursor = self.connection.cursor()
-
+        # print(type(self.cursor))
         # create table if not exists
         self.cursor.execute("CREATE DATABASE IF NOT EXISTS shortlink")
 
@@ -53,7 +53,7 @@ class MyDatabase:
 
     # TODO: Write all methods that allow create shorten urls and get real urls from shorten url
     def add_url(self, UrlShortenHandler, host, url, hash):
-        cursor = self.cursor()
+        cursor = self.cursor
 
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
         cursor.execute("SELECT shorten_url FROM myurl WHERE hash_url = %s", (hash,))
@@ -63,7 +63,7 @@ class MyDatabase:
         if result and len(result) > 0:
             # write result, this is the this.responseText you can see in index.html file
             self.connection.commit()
-            self.connection.close()
+            # self.connection.close()
             print("Receive url: " + url)
             print("Shorten url: " + result[0])
             print("Hash url: " + hash)
@@ -87,7 +87,7 @@ class MyDatabase:
         params = (url, hash, shorten)
         cursor.execute("INSERT INTO myurl (real_url, hash_url, shorten_url) VALUES (%s, %s, %s)", params)
         self.connection.commit()
-        self.connection.close()
+        # self.connection.close()
 
         print("Receive url: " + url)
         print("Shorten url: " + shorten)
@@ -98,16 +98,16 @@ class MyDatabase:
 
 
     def get_url(self, UrlShortenHandler, id):
-
+        # print(type(self.cursor))
         # Lấy id query trong url. This is just shorten character.
-        cursor = self.cursor()
+        cursor = self.cursor
         cursor.execute("SELECT real_url FROM myurl WHERE shorten_url = %s", (id,))
         # fetch the first result of the query above
         result = cursor.fetchone()
 
         # print(type(result))
         # print(result[0])
-        self.connection.close()
+        # self.connection.close()
 
         if result and len(result) > 0:
             UrlShortenHandler.redirect(result[0])
