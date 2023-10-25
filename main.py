@@ -7,7 +7,7 @@ import random
 import os
 import string
 import mysql.connector
-import backend_db
+import OrmDatabase as ORM
 import url_handler
 import index_handler
 
@@ -15,7 +15,7 @@ URL_LENGTH = 5
 
 def make_app():
 
-    db = backend_db.MyDatabase(
+    db = ORM.MyDatabase(
         host=os.getenv('DB_HOST', 'localhost'),
         # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
         port=int(os.getenv('DB_PORT', 3306)),
