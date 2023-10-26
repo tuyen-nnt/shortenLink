@@ -1,7 +1,7 @@
 from typing import List
 from typing import Optional
 from sqlalchemy import ForeignKey
-from sqlalchemy import String, create_engine, text
+from sqlalchemy import String, create_engine, text, exc
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -19,10 +19,21 @@ import random_url
 class MyDatabase:
     def __init__(self, host, port, username, password, db_name):
         url = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?unix_socket=/var/run/mysqld/mysqld.sock'.format(username, password, host, port, db_name)
+
         if not database_exists(url):
             create_database(url)
+
+        print(url)
         # connect to server
-        self.engine = create_engine(url, echo=True).connect()
+        self.engine = create_engine(url, echo=True, pool_pre_ping=True).connect()
+        try:
+            # suppose the database has been restarted.
+            self.engine.execute(text("SELECT * FROM shortlink"))
+            self.engine.close()
+        except exc.DBAPIError as e:
+            # an exception is raised, Connection is invalidated.
+            if e.connection_invalidated:
+                print("Connection was invalidated!")
 
         # id: Mapped[int] = mapped_column(primary_key=True)
         # real_url: Mapped[str] = mapped_column(String(80))
