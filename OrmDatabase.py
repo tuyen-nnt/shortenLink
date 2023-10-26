@@ -18,7 +18,7 @@ import random_url
 
 class MyDatabase:
     def __init__(self, host, port, username, password, db_name):
-        url = 'mysql://{0}:{1}@{2}:{3}/{4}'.format(username, password, host, port, db_name)
+        url = 'mysql://{0}:{1}@{2}:{3}/{4}?unix_socket=/var/run/mysqld/mysqld.sock'.format(username, password, host, port, db_name)
         if not database_exists(url):
             create_database(url)
         # connect to server

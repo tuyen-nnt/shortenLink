@@ -8,7 +8,7 @@ import random_url
 import os
 import string
 import constant
-from url_handler import UrlShortenHandler
+# from url_handler import UrlShortenHandler
 
 
 class MyDatabase:
