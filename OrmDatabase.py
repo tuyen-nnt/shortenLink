@@ -43,6 +43,14 @@ class MyDatabase:
         #     return f"User(id={self.id!r}, real_url={self.real_url!r}, shorten_url={self.shorten_url!r})"
         print("Connected to MySQL database at %s:%s" % (host, port))
 
+        self.engine.execute(text("USE shortlink"))
+
+        # create table if not exists
+        self.engine.execute(text("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
+                            real_url VARCHAR(100), \
+                            hash_url VARCHAR(100), \
+                            shorten_url VARCHAR(100) \
+        )"))
 
 
     def check_url(self, hash):
