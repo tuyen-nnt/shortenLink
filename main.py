@@ -16,7 +16,7 @@ URL_LENGTH = 5
 def make_app():
 
     db = ORM.MyDatabase(
-        host=os.getenv('DB_HOST', '127.0.0.1'),
+        host=os.getenv('DB_HOST', 'localhost'),
         # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
         port=int(os.getenv('DB_PORT', 3306)),
         username=os.getenv('DB_USER', 'tuyen'),
