@@ -1,23 +1,25 @@
 #!/usr/bin/python3
 # Làm sao để tạo form input vào link và nó trả về kết quả. Sau đó bấm link kết quả và sẽ redirect qua trang đã input
-
+import environs
 import tornado.ioloop
 import tornado.web
 import os
 from database import MyDatabase as Orm
 from api import url_handler, index_handler
 
+
+env = environs.Env()
+env.read_env('.env')
 URL_LENGTH = 5
 
 def make_app():
-
+    # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
     db = Orm.MyDatabase(
-        host=os.getenv('DB_HOST', 'localhost'),
-        # https://stackoverflow.com/questions/4906977/how-to-access-environment-variable-values
-        port=int(os.getenv('DB_PORT', 3306)),
-        username=os.getenv('DB_USER', 'tuyen'),
-        password=os.getenv('DB_PASSWORD', 'Password@123'),
-        db_name=os.getenv('DB_NAME', 'shortlink')
+        host=env.str("MYSQL.HOST"),
+        port=3306,
+        username=env.str("MYSQL.DBUSER"),
+        password=env.str("MYSQL.PASSWORD"),
+        db_name=env.str("MYSQL.DBNAME")
     )
 
 

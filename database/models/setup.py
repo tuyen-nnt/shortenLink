@@ -1,9 +1,8 @@
 import urllib.parse
 
+import environs
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
-
-from database.models.myurl import MyURL
 
 def create_engine_url(host, port, username, password, db_name):
     url = URL.create(

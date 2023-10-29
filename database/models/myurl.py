@@ -31,7 +31,8 @@ class TimestampMixin:
 # ]
 class MyURL(Base, TableNameMixin, TimestampMixin):
     __tablename__ = "myurl"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int_pk]
     real_url: Mapped[str] = mapped_column(String(80))
     hash_url: Mapped[str] = mapped_column(String(80))
     shorten_url: Mapped[str] = mapped_column(String(50))

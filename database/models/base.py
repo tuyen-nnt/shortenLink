@@ -1,6 +1,6 @@
 from sqlalchemy import Integer
 from sqlalchemy.orm import DeclarativeBase, registry, mapped_column
-from sqlalchemy.sql.annotation import Annotated
+from typing_extensions import Annotated
 
 int_pk = Annotated[
     int,
