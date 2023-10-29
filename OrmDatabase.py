@@ -1,14 +1,18 @@
-from typing import List
-from typing import Optional
-from sqlalchemy import ForeignKey
-from sqlalchemy import String, create_engine, text, exc
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
-from sqlalchemy_utils import create_database, database_exists
+from sqlalchemy import URL
+import urllib.parse
+
+from sqlalchemy import URL
+from sqlalchemy import create_engine, select, insert
+from sqlalchemy.orm import declarative_base
+
 import constant
 import random_url
+from database.models.base import Base
+from database.models.myurl import MyURL
+import database.models.setup as setup
+
+
+
 
 # Instruction
 # https://stackoverflow.com/questions/10770377/how-to-create-db-in-mysql-with-sqlalchemy
@@ -16,46 +20,42 @@ import random_url
 # class Base(DeclarativeBase):
 #     pass
 
+
 class MyDatabase:
     def __init__(self, host, port, username, password, db_name):
-        url = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?unix_socket=/var/run/mysqld/mysqld.sock'.format(username, password, host, port, db_name)
+        # url = f'mysql+pymysql://{username}:{urllib.parse.quote(password)}@{host}:{port}/{db_name}'
 
-        if not database_exists(url):
-            create_database(url)
 
-        print(url)
-        # connect to server
-        self.engine = create_engine(url, echo=True, pool_pre_ping=True).connect()
-        try:
-            # suppose the database has been restarted.
-            self.engine.execute(text("SELECT * FROM shortlink"))
-            self.engine.close()
-        except exc.DBAPIError as e:
-            # an exception is raised, Connection is invalidated.
-            if e.connection_invalidated:
-                print("Connection was invalidated!")
+        self.engine = setup.create_engine_url(host, port, username, password, db_name)
+        Base.metadata.create_all(self.engine, checkfirst=True)
 
-        # id: Mapped[int] = mapped_column(primary_key=True)
-        # real_url: Mapped[str] = mapped_column(String(80))
-        # hash_url: Mapped[str] = mapped_column(String(80))
-        # shorten_url: Mapped[str] = mapped_column(String(50))
-        # def __repr__(self) -> str:
-        #     return f"User(id={self.id!r}, real_url={self.real_url!r}, shorten_url={self.shorten_url!r})"
+        self.session_pool = setup.create_session_pool(self.engine)
+
+        # try:
+        #     # suppose the database has been restarted.
+        #     self.engine.execute(text("SELECT * FROM shortlink"))
+        #     self.engine.close()
+        # except exc.DBAPIError as e:
+        #     # an exception is raised, Connection is invalidated.
+        #     if e.connection_invalidated:
+        #         print("Connection was invalidated!")
+
         print("Connected to MySQL database at %s:%s" % (host, port))
 
-        self.engine.execute(text("USE shortlink"))
+        # self.engine.execute(text("USE shortlink"))
 
         # create table if not exists
-        self.engine.execute(text("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
-                            real_url VARCHAR(100), \
-                            hash_url VARCHAR(100), \
-                            shorten_url VARCHAR(100) \
-        )"))
+        # self.engine.execute(text("CREATE TABLE IF NOT EXISTS myurl (id INTEGER NOT NULL primary key AUTO_INCREMENT,\
+        #                     real_url VARCHAR(100), \
+        #                     hash_url VARCHAR(100), \
+        #                     shorten_url VARCHAR(100) \
+        # )"))
 
 
     def check_url(self, hash):
         # Check xem cái hash url có trong db không, nếu có thì in ra shorten link đã tạo luôn
-        result = self.engine.execute(text("SELECT shorten_url FROM myurl WHERE hash_url = {0}".format(hash))).fetchone()
+        with self.session_pool() as session:
+            result = session.execute(select(MyURL.shorten_url).where(MyURL.hash_url == hash)).first()
         # fetch the first result of the query above (tuple type)
         if result and len(result) > 0:
             # write result, this is the this.responseText you can see in index.html file
@@ -68,23 +68,32 @@ class MyDatabase:
         shorten = random_url.get_random_url(constant.URL_LENGTH)
         print("test: " + shorten)
         # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
-        result_random = self.engine.execute(text("SELECT id FROM myurl WHERE shorten_url = {0}".format(shorten))).fetchone()
+        with self.session_pool() as session:
+            result_random = session.execute(
+                select(MyURL.id).where(MyURL.shorten_url == shorten)).first()
+
         # fetch the first result of the query above
         print(result_random)
+
         while result_random and len(result_random) > 0:
             shorten = random_url.get_random_url(constant.URL_LENGTH)
             print("test: " + shorten)
             # Khi mà shorten đã được tạo bởi url khác rồi thì tiếp tục tạo shorten khác
             # fetch the first result of the query above
-            result_random = self.engine.execute(text("SELECT id FROM myurl WHERE shorten_url = {0}".format(shorten))).fetchone()
+            with self.session_pool() as session:
+                result_random = session.execute(
+                    select(MyURL.id).where(MyURL.shorten_url == shorten)).first()
 
         return shorten
 
     def add_url(self, url, hash, shorten):
-        params = (url, hash, shorten)
-        self.engine.execute(text("INSERT INTO myurl (real_url, hash_url, shorten_url) VALUES ({0}, {1}, {2})".format(url, hash, shorten))).fetchone()
-        self.engine.commit()
-        # self.engine.close()
+        # newRow = Shortlink(real_url={url}, hash_url={hash}, shorten_url={shorten})
+        # self.session.add(newRow)
+        with self.session_pool() as session:
+            act = insert(MyURL).values(real_url=url, hash_url=hash, shorten_url=shorten)
+            session.execute(act)
+            session.commit()
+            session.close()
 
         print("Receive url: " + url)
         print("Shorten url: " + shorten)
@@ -94,9 +103,11 @@ class MyDatabase:
 
 
     def get_url(self, id):
-
+        obj_base = self.objShortlink
+        result = self.session.execute(
+            select(obj_base.id).where(obj_base.shorten_url == "{id}")).first()
         # Lấy id query trong url. This is just shorten character.
-        result = self.engine.execute(text("SELECT real_url FROM myurl WHERE shorten_url ={0}".format(id))).fetchone()
+        # result = self.engine.execute(text("SELECT real_url FROM myurl WHERE shorten_url ={0}".format(id))).fetchone()
         # fetch the first result of the query above
         # print(type(result))
         # print(result[0])
