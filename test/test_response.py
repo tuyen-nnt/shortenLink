@@ -1,5 +1,6 @@
 import unittest
-import url_handler
+from api import url_handler
+
 
 class TestGetResponse(unittest.TestCase):
     def test_get_response(self):

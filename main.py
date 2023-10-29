@@ -3,13 +3,9 @@
 
 import tornado.ioloop
 import tornado.web
-import random
 import os
-import string
-import mysql.connector
-import OrmDatabase as Orm
-import url_handler
-import index_handler
+from database import MyDatabase as Orm
+from api import url_handler, index_handler
 
 URL_LENGTH = 5
 

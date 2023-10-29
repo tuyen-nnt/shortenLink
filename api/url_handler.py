@@ -1,10 +1,5 @@
-import tornado.ioloop
 import tornado.web
 import hashlib
-import backend_db
-from random_url import get_random_url
-import constant
-
 
 # Dict này lưu cặp shorten: real_url
 URL = {}

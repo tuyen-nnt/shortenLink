@@ -1,8 +1,6 @@
-import random
-import string
 import unittest
-import constant
-from random_url import get_random_url
+from utils import constant
+from utils.random_url import get_random_url
 
 class TestGenerateRandomPath(unittest.TestCase):
     def test_length_path(self):

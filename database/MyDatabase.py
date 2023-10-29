@@ -1,12 +1,6 @@
-from sqlalchemy import URL
-import urllib.parse
+from sqlalchemy import select, insert
 
-from sqlalchemy import URL
-from sqlalchemy import create_engine, select, insert
-from sqlalchemy.orm import declarative_base
-
-import constant
-import random_url
+from utils import random_url, constant
 from database.models.base import Base
 from database.models.myurl import MyURL
 import database.models.setup as setup
@@ -25,10 +19,10 @@ class MyDatabase:
     def __init__(self, host, port, username, password, db_name):
         # url = f'mysql+pymysql://{username}:{urllib.parse.quote(password)}@{host}:{port}/{db_name}'
 
-
         self.engine = setup.create_engine_url(host, port, username, password, db_name)
         Base.metadata.create_all(self.engine, checkfirst=True)
 
+        # Create session_pool for object
         self.session_pool = setup.create_session_pool(self.engine)
 
         # try:
