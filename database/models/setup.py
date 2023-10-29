@@ -5,12 +5,11 @@ from sqlalchemy.orm import sessionmaker
 
 from database.models.myurl import MyURL
 
-
 def create_engine_url(host, port, username, password, db_name):
     url = URL.create(
         drivername="mysql+pymysql",
         username=username,
-        password=urllib.parse.quote(password),
+        password=password,
         host=host,
         port=port,
         database=db_name,

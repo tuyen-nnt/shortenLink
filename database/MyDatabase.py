@@ -5,9 +5,6 @@ from database.models.base import Base
 from database.models.myurl import MyURL
 import database.models.setup as setup
 
-
-
-
 # Instruction
 # https://stackoverflow.com/questions/10770377/how-to-create-db-in-mysql-with-sqlalchemy
 # https://stackoverflow.com/questions/6506578/how-to-create-a-new-database-using-sqlalchemy/30971098#30971098
@@ -99,7 +96,7 @@ class MyDatabase:
     def get_url(self, id):
         with self.session_pool() as session:
             result = session.execute(
-                select(MyURL.id).where(MyURL.shorten_url == id)).first()
+                select(MyURL.real_url).where(MyURL.shorten_url == id)).first()
         # Lấy id query trong url. This is just shorten character.
         # result = self.engine.execute(text("SELECT real_url FROM myurl WHERE shorten_url ={0}".format(id))).fetchone()
         # fetch the first result of the query above
