@@ -103,9 +103,9 @@ class MyDatabase:
 
 
     def get_url(self, id):
-        obj_base = self.objShortlink
-        result = self.session.execute(
-            select(obj_base.id).where(obj_base.shorten_url == "{id}")).first()
+        with self.session_pool() as session:
+            result = session.execute(
+                select(MyURL.id).where(MyURL.shorten_url == id)).first()
         # Lấy id query trong url. This is just shorten character.
         # result = self.engine.execute(text("SELECT real_url FROM myurl WHERE shorten_url ={0}".format(id))).fetchone()
         # fetch the first result of the query above
