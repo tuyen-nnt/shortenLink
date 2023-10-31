@@ -1,3 +1,4 @@
+import urllib.parse
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, URL
@@ -20,12 +21,12 @@ env.read_env('.env')
 
 url = URL.create(
         drivername="mysql+pymysql",
-        username=env.str("MYSQL.USERNAME"),
-        password=env.str("MYSQL.HOST"),
+        username=env.str("MYSQL.DBUSER"),
+        password=env.str("MYSQL.PASSWORD"),
         host=env.str("MYSQL.HOST"),
         port=3306,
         database=env.str("MYSQL.DBNAME"),
-    ).render_as_string()
+    ).render_as_string(hide_password=False)
 
 config.set_main_option("sqlalchemy.url", url)
 
