@@ -5,6 +5,6 @@
 * The code that alembic automatically generate based on your modification in model files is not exactly correct, you need to check before apply it. 
 => Edit the function in the latest version .py file in versions folder then run the command above to generate new version.
 * Then you need to run another command to let the alembic know which method in new version it need to execute and to apply the method: 
-  * ``alembic upgrade head`` : 
-  * ``alembic  upgrade +1/+2/+3...``:
-  * ``alembic downgrade -1/-2...`` : 
+  * ``alembic upgrade head`` : run all available version
+  * ``alembic  upgrade <+number>``: run the next <number> of version from current version
+  * ``alembic downgrade <-number>`` : revert to the previous <number> of version from current version
