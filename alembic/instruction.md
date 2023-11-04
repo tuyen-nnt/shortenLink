@@ -6,5 +6,5 @@
 => Edit the function in the latest version .py file in versions folder then run the command above to generate new version.
 * Then you need to run another command to let the alembic know which method in new version it need to execute and to apply the method: 
   * ``alembic upgrade head`` : run all available version
-  * ``alembic  upgrade <+number>``: run the next <number> of version from current version
+  * ``alembic upgrade <+number>``: run the next <number> of version from current version
   * ``alembic downgrade <-number>`` : revert to the previous <number> of version from current version
